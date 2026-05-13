@@ -1,0 +1,9 @@
+{
+  "id": "network-traffic",
+  "name": "Network Traffic",
+  "description": "Per-interface RX/TX throughput with history graph",
+  "author": "Cleat",
+  "category": "Network",
+  "version": "1.0.0",
+  "homepage": "https://github.com/zimventures/cleat-plugins"
+}

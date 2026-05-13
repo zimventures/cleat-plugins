@@ -1,0 +1,15 @@
+# Force LF line endings for source files we package into plugin zips.
+# Without this, a Windows checkout produces CRLF bytes that change the
+# zip sha256 — making the published hash differ across re-runs and
+# triggering phantom "update available" prompts in cleat clients.
+# Tools/docs are normalized for the same reason (build reproducibility,
+# clean diffs).
+
+* text=auto eol=lf
+
+*.lua    text eol=lf
+*.py     text eol=lf
+*.md     text eol=lf
+*.json   text eol=lf
+*.yml    text eol=lf
+*.yaml   text eol=lf

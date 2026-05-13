@@ -1,0 +1,9 @@
+{
+  "id": "system-info",
+  "name": "System Info",
+  "description": "Basic system information",
+  "author": "Cleat",
+  "category": "System",
+  "version": "1.0.0",
+  "homepage": "https://github.com/zimventures/cleat-plugins"
+}

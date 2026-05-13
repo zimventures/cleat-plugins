@@ -1,0 +1,9 @@
+{
+  "id": "error-log-monitor",
+  "name": "Error Log Monitor",
+  "description": "Tails system logs for ERROR/CRITICAL severity entries",
+  "author": "Cleat",
+  "category": "Logs",
+  "version": "1.1.0",
+  "homepage": "https://github.com/zimventures/cleat-plugins"
+}

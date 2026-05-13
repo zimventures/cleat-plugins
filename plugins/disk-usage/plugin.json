@@ -1,0 +1,9 @@
+{
+  "id": "disk-usage",
+  "name": "Disk Usage",
+  "description": "All mount points: % used bar chart + size/used/avail/fs table",
+  "author": "Cleat",
+  "category": "System",
+  "version": "1.0.0",
+  "homepage": "https://github.com/zimventures/cleat-plugins"
+}

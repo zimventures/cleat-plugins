@@ -1,0 +1,9 @@
+{
+  "id": "statusbar-network",
+  "name": "Net",
+  "description": "Primary interface throughput (bytes/sec) for the status bar",
+  "author": "Cleat",
+  "category": "Status Bar",
+  "version": "1.0.0",
+  "homepage": "https://github.com/zimventures/cleat-plugins"
+}

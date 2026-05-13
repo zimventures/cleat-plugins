@@ -1,0 +1,9 @@
+{
+  "id": "cpu-memory",
+  "name": "CPU & Memory",
+  "description": "CPU and memory usage monitoring",
+  "author": "Cleat",
+  "category": "System",
+  "version": "1.0.0",
+  "homepage": "https://github.com/zimventures/cleat-plugins"
+}
