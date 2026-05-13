@@ -60,18 +60,26 @@ and adds an entry like this to the public `index.json`:
 
 ```json
 {
-  "id":         "process-list",
-  "name":       "Process List",
-  /* ... author-supplied fields ... */
+  "id": "process-list",
+  "name": "Process List",
+  "description": "Top processes by CPU/memory with sort + filter",
+  "author": "alice",
+  "category": "System",
+  "version": "1.2.0",
+  "cleat_min_version": "0.2.0",
+  "api_version": "1",
+  "homepage": "https://github.com/alice/cleat-process-list",
   "source_url": "https://zimventures.github.io/cleat-plugins/zips/process-list-v1.2.0.zip",
-  "sha256":     "abc123...64 hex chars..."
+  "sha256": "abc123def456...64 hex chars..."
 }
 ```
 
-That's the shape cleat's Browse Marketplace tab sees and consumes. The
-full published-side schema (top-level document + entry fields) is
-documented in cleat's `docs/marketplace-index-schema.md` — but as a
-plugin author you don't need to think about it.
+The first eight fields above came from the author's `plugin.json`
+verbatim; CI appended `source_url` and `sha256`. That's the shape
+cleat's Browse Marketplace tab sees and consumes. The full
+published-side schema (top-level document + entry fields) is documented
+in cleat's `docs/marketplace-index-schema.md` — but as a plugin author
+you don't need to think about it.
 
 ## Validation rules (what CI checks)
 

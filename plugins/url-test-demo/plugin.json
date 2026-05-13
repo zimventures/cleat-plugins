@@ -4,7 +4,7 @@
   "description": "Test plugin used to exercise the install-from-URL + marketplace flows. Forked from cleat's bundled system-info plugin with a distinct id.",
   "author": "Cleat",
   "category": "System",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "cleat_min_version": "0.1.0",
   "api_version": "1",
   "homepage": "https://github.com/zimventures/cleat-plugins"

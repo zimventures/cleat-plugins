@@ -143,14 +143,21 @@ def check_entry(entry_dir: Path, errors: list[str]) -> dict | None:
         fail(manifest, f"cleat_min_version `{cmv}` is not strict MAJOR.MINOR.PATCH semver", errors)
 
     # Cross-check plugin.lua's declared metadata against the manifest.
+    # Missing id / version in the .lua is itself a validation failure —
+    # without an explicit error here, a .lua that omits the field would
+    # silently pass and we'd publish a plugin cleat can't actually load.
     lua_meta = parse_lua_metadata(lua)
-    lua_id = lua_meta.get("id", "")
-    if lua_id and pid and lua_id != pid:
+    lua_id = lua_meta.get("id")
+    if lua_id is None:
+        fail(lua, "plugin.lua does not declare an `id` field in its metadata table", errors)
+    elif pid and lua_id != pid:
         fail(lua, f"plugin.lua declares id `{lua_id}` but the manifest says `{pid}`", errors)
-    lua_version = lua_meta.get("version", "")
-    if lua_version and version and lua_version != version:
-        fail(lua,
-             f"plugin.lua declares version `{lua_version}` but the manifest says `{version}` — bump both",
+
+    lua_version = lua_meta.get("version")
+    if lua_version is None:
+        fail(lua, "plugin.lua does not declare a `version` field in its metadata table", errors)
+    elif version and lua_version != version:
+        fail(lua, f"plugin.lua declares version `{lua_version}` but the manifest says `{version}` — bump both",
              errors)
 
     return doc

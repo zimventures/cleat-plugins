@@ -46,12 +46,18 @@ A plugin's presence in this registry represents a maintainer review.
 That review is the trust signal — there is no separate "verified" flag
 on individual entries.
 
-The `sha256` field is what makes the review durable: once merged, the
-registry has committed to one specific archive at `source_url`. If the
-author's hosting later serves different bytes (intentional or otherwise),
-cleat's pre-install hash check fails and the install is refused. The
-review covers *the bytes that existed at merge time*, not whatever
-`source_url` happens to serve later.
+The registry's CI is the only thing that produces published zips:
+on every merge to `main`, the publish workflow zips each
+`plugins/<id>/` directory, computes its sha256, and writes both the
+zip and the resulting hash into the public `index.json`. Authors
+don't host or hash anything — the `sha256` in the index is by
+construction the hash of the exact bytes that were reviewed at merge
+time.
+
+Cleat's client verifies that hash on every install: if the published
+bytes ever change without a corresponding new merge (which would
+require a CI / Pages compromise), users get an explicit error
+instead of silently installing tampered code.
 
 ## Local development
 

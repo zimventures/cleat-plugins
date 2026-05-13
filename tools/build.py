@@ -59,9 +59,23 @@ def build_one_zip(entry_dir: Path, zips_out: Path) -> tuple[Path, str, str]:
     for p in sorted(entry_dir.rglob("*")):
         if p.is_dir():
             continue
+        # Reject symlinks — packaging a symlink would either follow it
+        # (embedding the target's bytes into the published zip, breaking
+        # the "what's in the repo is what gets published" trust contract)
+        # or skip it silently. Better to fail loud and force the author
+        # to commit real files.
+        if p.is_symlink():
+            raise RuntimeError(f"{entry_dir}: symlink not allowed in published source: {p.relative_to(entry_dir)}")
         files.append(p)
 
-    if not any(f.name == "plugin.lua" for f in files):
+    # plugin.lua must live at the entry root, not in a subdirectory.
+    # Cleat's loader expects `<id>/plugin.lua` inside the zip; a nested
+    # `<id>/subdir/plugin.lua` would silently produce an unloadable
+    # archive even though the file exists somewhere in the tree.
+    has_root_lua = any(
+        f.parent == entry_dir and f.name == "plugin.lua" for f in files
+    )
+    if not has_root_lua:
         raise RuntimeError(f"{entry_dir}: no plugin.lua at the root of the entry")
 
     # ZIP_DEFLATED gives reasonable compression on Lua source. Determinism
