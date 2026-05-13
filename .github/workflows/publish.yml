@@ -5,7 +5,7 @@ on:
     branches: [main]
     paths:
       - 'plugins/**'
-      - 'tools/aggregate.py'
+      - 'tools/build.py'
       - '.github/workflows/publish.yml'
   workflow_dispatch:
 
@@ -30,12 +30,18 @@ jobs:
         with:
           python-version: '3.x'
 
-      - name: Build aggregated index.json
+      - name: Build zips + aggregated index.json
         run: |
-          mkdir -p _site
-          python tools/aggregate.py > _site/index.json
+          # build.py writes both _site/zips/<id>-vX.Y.Z.zip and
+          # _site/index.json; Pages then serves both at
+          # https://zimventures.github.io/cleat-plugins/{zips/...,index.json}
+          python tools/build.py --out _site \
+            --base-url "https://zimventures.github.io/cleat-plugins/"
           echo "--- index.json preview ---"
           head -c 500 _site/index.json
+          echo
+          echo "--- zips/ listing ---"
+          ls -la _site/zips/
 
       - uses: actions/upload-pages-artifact@v3
         with:

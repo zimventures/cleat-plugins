@@ -11,24 +11,31 @@ to hunt down URLs or hashes manually.
 ```
 plugins/
 └── <plugin-id>/
-    └── plugin.json    # one manifest per plugin
+    ├── plugin.lua     # the plugin source
+    └── plugin.json    # author-facing metadata manifest
 ```
 
-On every merge to `main`, CI walks every `plugins/<id>/plugin.json`, validates
-it, aggregates them into a single `index.json`, and deploys to GitHub Pages at:
+Authors submit source files. CI does the packaging: on every merge to `main`,
+the publish workflow walks each `plugins/<id>/`, zips it, computes the sha256,
+aggregates the result into a single `index.json`, and deploys both the zips and
+the index to GitHub Pages:
 
 ```
-https://zimventures.github.io/cleat-plugins/index.json
+https://zimventures.github.io/cleat-plugins/index.json        ← the index
+https://zimventures.github.io/cleat-plugins/zips/<id>-vX.Y.Z.zip  ← built zips
 ```
 
-cleat fetches that URL (configurable via `plugins.marketplace.index_url`).
+cleat fetches the index URL (configurable via `plugins.marketplace.index_url`)
+and downloads each plugin's zip on install. Verifies the sha256 matches the
+index entry before unpacking.
 
 ## Submitting a plugin
 
-Open a PR adding `plugins/<your-id>/plugin.json`. CI will validate the entry
-on the PR — schema check, sha256 verification against the bytes hosted at
-`source_url`, id uniqueness, etc. A maintainer reviews + merges; the index
-is republished automatically.
+Open a PR adding `plugins/<your-id>/plugin.lua` + `plugins/<your-id>/plugin.json`.
+CI validates the entry — schema check, id matches the directory and the .lua
+source, id uniqueness, version matches between the manifest and the .lua,
+etc. A maintainer reviews + merges; the publish workflow rebuilds zips and
+republishes the index automatically.
 
 See [`docs/CONTRIBUTING.md`](docs/CONTRIBUTING.md) for the full walkthrough and
 [`docs/SCHEMA.md`](docs/SCHEMA.md) for the manifest reference.
@@ -49,15 +56,14 @@ review covers *the bytes that existed at merge time*, not whatever
 ## Local development
 
 ```bash
-# Validate every plugin manifest in the tree
+# Lint every entry in plugins/
 python tools/validate.py
 
-# Build the aggregated index.json the same way CI does
-python tools/aggregate.py > index.json
+# Build the zips + index.json the same way CI does (writes to _site/)
+python tools/build.py --out _site
 ```
 
-Validation requires Python 3.9+ and the `requests` package for the
-sha256-of-downloaded-bytes check.
+Both scripts need only Python 3.9+ (no third-party packages).
 
 ## License
 
