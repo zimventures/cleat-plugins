@@ -11,24 +11,31 @@ to hunt down URLs or hashes manually.
 ```
 plugins/
 └── <plugin-id>/
-    └── plugin.json    # one manifest per plugin
+    ├── plugin.lua     # the plugin source
+    └── plugin.json    # author-facing metadata manifest
 ```
 
-On every merge to `main`, CI walks every `plugins/<id>/plugin.json`, validates
-it, aggregates them into a single `index.json`, and deploys to GitHub Pages at:
+Authors submit source files. CI does the packaging: on every merge to `main`,
+the publish workflow walks each `plugins/<id>/`, zips it, computes the sha256,
+aggregates the result into a single `index.json`, and deploys both the zips and
+the index to GitHub Pages:
 
 ```
-https://zimventures.github.io/cleat-plugins/index.json
+https://zimventures.github.io/cleat-plugins/index.json        ← the index
+https://zimventures.github.io/cleat-plugins/zips/<id>-vX.Y.Z.zip  ← built zips
 ```
 
-cleat fetches that URL (configurable via `plugins.marketplace.index_url`).
+cleat fetches the index URL (configurable via `plugins.marketplace.index_url`)
+and downloads each plugin's zip on install. Verifies the sha256 matches the
+index entry before unpacking.
 
 ## Submitting a plugin
 
-Open a PR adding `plugins/<your-id>/plugin.json`. CI will validate the entry
-on the PR — schema check, sha256 verification against the bytes hosted at
-`source_url`, id uniqueness, etc. A maintainer reviews + merges; the index
-is republished automatically.
+Open a PR adding `plugins/<your-id>/plugin.lua` + `plugins/<your-id>/plugin.json`.
+CI validates the entry — schema check, id matches the directory and the .lua
+source, id uniqueness, version matches between the manifest and the .lua,
+etc. A maintainer reviews + merges; the publish workflow rebuilds zips and
+republishes the index automatically.
 
 See [`docs/CONTRIBUTING.md`](docs/CONTRIBUTING.md) for the full walkthrough and
 [`docs/SCHEMA.md`](docs/SCHEMA.md) for the manifest reference.
@@ -39,25 +46,30 @@ A plugin's presence in this registry represents a maintainer review.
 That review is the trust signal — there is no separate "verified" flag
 on individual entries.
 
-The `sha256` field is what makes the review durable: once merged, the
-registry has committed to one specific archive at `source_url`. If the
-author's hosting later serves different bytes (intentional or otherwise),
-cleat's pre-install hash check fails and the install is refused. The
-review covers *the bytes that existed at merge time*, not whatever
-`source_url` happens to serve later.
+The registry's CI is the only thing that produces published zips:
+on every merge to `main`, the publish workflow zips each
+`plugins/<id>/` directory, computes its sha256, and writes both the
+zip and the resulting hash into the public `index.json`. Authors
+don't host or hash anything — the `sha256` in the index is by
+construction the hash of the exact bytes that were reviewed at merge
+time.
+
+Cleat's client verifies that hash on every install: if the published
+bytes ever change without a corresponding new merge (which would
+require a CI / Pages compromise), users get an explicit error
+instead of silently installing tampered code.
 
 ## Local development
 
 ```bash
-# Validate every plugin manifest in the tree
+# Lint every entry in plugins/
 python tools/validate.py
 
-# Build the aggregated index.json the same way CI does
-python tools/aggregate.py > index.json
+# Build the zips + index.json the same way CI does (writes to _site/)
+python tools/build.py --out _site
 ```
 
-Validation requires Python 3.9+ and the `requests` package for the
-sha256-of-downloaded-bytes check.
+Both scripts need only Python 3.9+ (no third-party packages).
 
 ## License
 

@@ -4,10 +4,8 @@
   "description": "Test plugin used to exercise the install-from-URL + marketplace flows. Forked from cleat's bundled system-info plugin with a distinct id.",
   "author": "Cleat",
   "category": "System",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "cleat_min_version": "0.1.0",
   "api_version": "1",
-  "source_url": "https://raw.githubusercontent.com/zimventures/toybox/master/url-test-demo.zip",
-  "sha256": "86c65219062734001f823889b2c5204bf1ca684090522d0eed45efa23fe8a605",
-  "homepage": "https://github.com/zimventures/toybox"
+  "homepage": "https://github.com/zimventures/cleat-plugins"
 }
