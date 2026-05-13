@@ -1,0 +1,9 @@
+{
+  "id": "docker-containers",
+  "name": "Docker Containers",
+  "description": "Running Docker containers (name, image, status, ports, uptime)",
+  "author": "Cleat",
+  "category": "Docker",
+  "version": "1.0.0",
+  "homepage": "https://github.com/zimventures/cleat-plugins"
+}

@@ -1,0 +1,9 @@
+{
+  "id": "listening-ports",
+  "name": "Listening Ports",
+  "description": "TCP services listening on the host (port, protocol, process, PID)",
+  "author": "Cleat",
+  "category": "Network",
+  "version": "1.0.0",
+  "homepage": "https://github.com/zimventures/cleat-plugins"
+}

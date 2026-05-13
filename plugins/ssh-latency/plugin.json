@@ -1,0 +1,9 @@
+{
+  "id": "ssh-latency",
+  "name": "SSH Latency",
+  "description": "SSH round-trip latency monitoring",
+  "author": "Cleat",
+  "category": "Network",
+  "version": "1.0.0",
+  "homepage": "https://github.com/zimventures/cleat-plugins"
+}

@@ -1,0 +1,9 @@
+{
+  "id": "auth-failures",
+  "name": "Auth Failures",
+  "description": "Surfaces failed SSH authentication attempts (user, source IP, timestamp)",
+  "author": "Cleat",
+  "category": "Logs",
+  "version": "1.1.0",
+  "homepage": "https://github.com/zimventures/cleat-plugins"
+}

@@ -83,6 +83,12 @@ def build_one_zip(entry_dir: Path, zips_out: Path) -> tuple[Path, str, str]:
     # written once and never overwritten), but we set times to a fixed
     # epoch so repeated builds of the same source produce identical
     # zips, which makes the sha256 in index.json stable across re-runs.
+    # Text-source extensions get CRLF normalized to LF before packing.
+    # Belt-and-suspenders alongside the repo's .gitattributes: even if a
+    # contributor's editor writes CRLF, the published zip stays
+    # byte-identical across builds on different OSes.
+    TEXT_EXTS = {".lua", ".md", ".json", ".txt"}
+
     with zipfile.ZipFile(zip_path, "w", compression=zipfile.ZIP_DEFLATED) as zf:
         for f in files:
             rel = f.relative_to(entry_dir).as_posix()
@@ -90,7 +96,10 @@ def build_one_zip(entry_dir: Path, zips_out: Path) -> tuple[Path, str, str]:
             zi = zipfile.ZipInfo(filename=arcname, date_time=(2024, 1, 1, 0, 0, 0))
             zi.compress_type = zipfile.ZIP_DEFLATED
             zi.external_attr = (0o644 << 16) | 0x20  # FILE_ATTRIBUTE_ARCHIVE
-            zf.writestr(zi, f.read_bytes())
+            data = f.read_bytes()
+            if f.suffix.lower() in TEXT_EXTS:
+                data = data.replace(b"\r\n", b"\n")
+            zf.writestr(zi, data)
 
     h = hashlib.sha256(zip_path.read_bytes()).hexdigest()
     return zip_path, h, top_dir

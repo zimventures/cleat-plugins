@@ -1,0 +1,9 @@
+{
+  "id": "statusbar-disk",
+  "name": "Disk",
+  "description": "Root filesystem in the status bar; all mountpoints in the panel",
+  "author": "Cleat",
+  "category": "Status Bar",
+  "version": "1.1.0",
+  "homepage": "https://github.com/zimventures/cleat-plugins"
+}
