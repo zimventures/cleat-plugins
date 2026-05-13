@@ -39,3 +39,14 @@ luac.out
 *.x86_64
 *.hex
 
+# Python tooling
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+
+# Locally aggregated build output (CI ships it to Pages; we don't commit it)
+_site/
+/index.json
+
