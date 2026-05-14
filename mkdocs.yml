@@ -1,0 +1,98 @@
+site_name: cleat plugins
+site_description: Author and publish plugins for the cleat SSH client.
+site_url: https://zimventures.github.io/cleat-plugins/
+repo_url: https://github.com/zimventures/cleat-plugins
+repo_name: zimventures/cleat-plugins
+edit_uri: edit/main/docs/
+docs_dir: docs
+site_dir: _site
+
+theme:
+  name: material
+  # Brand assets — same icon cleat uses as its app icon (resized down
+  # to 256x256 so navbar fetches stay small).
+  logo: assets/logo.png
+  favicon: assets/logo.png
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - navigation.indexes
+    - navigation.top
+    - content.code.copy
+    - content.code.annotate
+    - search.suggest
+    - search.highlight
+    - toc.follow
+  # Use Material's "custom" palette key so the actual colors come from
+  # extra_css (cleat-palette.css) rather than Material's named presets.
+  # That lets us match the cleat website's amber + navy brand exactly
+  # rather than approximating with one of Material's built-in names.
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+
+extra_css:
+  - assets/cleat-palette.css
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.emoji:
+      # Material icon shortcodes — `:material-rocket-launch:` etc. —
+      # are rendered as inline SVGs via Twemoji + Material's generator.
+      # Without this extension the shortcodes pass through as raw text.
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+
+nav:
+  - Home: index.md
+  - Getting started:
+      - getting-started/index.md
+      - Quickstart: getting-started/quickstart.md
+      - Plugin lifecycle: getting-started/lifecycle.md
+  - Plugin manifest:
+      - manifest/index.md
+      - The plugin = {} table: manifest/plugin-table.md
+      - Settings: manifest/settings.md
+      - Permissions: manifest/permissions.md
+  - Lua API reference:
+      - api/index.md
+      - Host (ssh:*): api/ssh.md
+      - Shared state (cleat.kv:*): api/cleat-kv.md
+      - Notifications (cleat:notify): api/cleat-notify.md
+      - Data store (store:*): api/store.md
+      - Widget context (ctx:*): api/widget-context.md
+  - Authoring workflow:
+      - workflow/index.md
+      - Testing locally: workflow/testing.md
+      - Submitting to the registry: workflow/submitting.md
+  - Registry reference:
+      - Registry manifest (plugin.json) schema: SCHEMA.md
+      - Contributing: CONTRIBUTING.md
