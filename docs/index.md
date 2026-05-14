@@ -2,8 +2,8 @@
 
 [cleat](https://github.com/zimventures/cleat) lets plugins extend the
 SSH client with custom data collection, visualization, and host
-introspection. Plugins are small Lua programs that run inside a
-sandboxed sandbox per pane, collect data from the connected host, and
+introspection. Plugins are small Lua programs that run inside an
+isolated sandbox per pane, collect data from the connected host, and
 render widgets in cleat's Plugin Manager and status bar.
 
 This site documents how to **author** a plugin, **test** it locally,
