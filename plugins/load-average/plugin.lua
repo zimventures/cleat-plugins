@@ -2,7 +2,7 @@ plugin = {
     id = "load-average",
     name = "Load Average",
     description = "System load average with trend graphs",
-    version = "1.0.0",
+    version = "1.0.1",
     author = "Cleat",
     icon = "",
     category = "System",
@@ -19,9 +19,19 @@ function collect(ssh, cfg)
 end
 
 function transform(raw, cfg)
+    -- Split on literal "\n---\n" delimiter; the previous `[^%-%-%-]+`
+    -- pattern was a negated character class containing just `-`, which
+    -- split on any hyphen and shifted section indices.
     local sections = {}
-    for section in raw:gmatch("([^%-%-%-]+)") do
-        table.insert(sections, section)
+    local pos = 1
+    while true do
+        local s, e = raw:find("\n---\n", pos, true)
+        if not s then
+            table.insert(sections, raw:sub(pos))
+            break
+        end
+        table.insert(sections, raw:sub(pos, s - 1))
+        pos = e + 1
     end
 
     local load_raw = (sections[1] or ""):match("^%s*(.-)%s*$") or ""

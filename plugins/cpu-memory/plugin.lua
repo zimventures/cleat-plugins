@@ -2,7 +2,7 @@ plugin = {
     id = "cpu-memory",
     name = "CPU & Memory",
     description = "CPU and memory usage monitoring",
-    version = "1.0.0",
+    version = "1.0.1",
     author = "Cleat",
     icon = "",
     category = "System",
@@ -35,9 +35,21 @@ function collect(ssh, cfg)
 end
 
 function transform(raw, cfg)
+    -- Split body on the literal "\n---\n" delimiter that collect() emits
+    -- between sections. The previous `[^%-%-%-]+` pattern was a negated
+    -- character class containing just `-` (Lua deduplicates), so it split
+    -- on any hyphen — breaking on e.g. /proc/meminfo lines with hyphenated
+    -- labels.
     local sections = {}
-    for section in raw:gmatch("([^%-%-%-]+)") do
-        table.insert(sections, section)
+    local pos = 1
+    while true do
+        local s, e = raw:find("\n---\n", pos, true)
+        if not s then
+            table.insert(sections, raw:sub(pos))
+            break
+        end
+        table.insert(sections, raw:sub(pos, s - 1))
+        pos = e + 1
     end
 
     local os_type = (sections[1] or ""):match("^%s*(.-)%s*$") or ""

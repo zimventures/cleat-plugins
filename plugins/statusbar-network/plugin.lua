@@ -24,10 +24,6 @@ plugin = {
 -- Module state: last seen counters, used to compute byte rate against this tick.
 local last_rx, last_tx, last_ts, last_iface = nil, nil, nil, nil
 
-local function shell_escape(s)
-    return "'" .. tostring(s):gsub("'", "'\\''") .. "'"
-end
-
 function collect(ssh, cfg)
     local iface = (cfg and cfg.interface) or ""
     iface = (iface or ""):gsub("^%s+", ""):gsub("%s+$", "")

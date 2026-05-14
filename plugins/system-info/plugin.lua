@@ -2,7 +2,7 @@ plugin = {
     id = "system-info",
     name = "System Info",
     description = "Basic system information",
-    version = "1.0.0",
+    version = "1.0.1",
     author = "Cleat",
     icon = "i",
     category = "System",
@@ -47,9 +47,21 @@ function transform(raw, cfg)
     jump_host = jump_host or ""
     auth_method = auth_method or ""
 
+    -- Split body on the literal "\n---\n" delimiter that collect() emits
+    -- between sections. The previous `[^%-%-%-]+` pattern was a negated
+    -- character class containing just `-` (Lua deduplicates), so it split
+    -- on any hyphen — breaking on kernel versions like "6.8.0-..." in
+    -- `uname -a` output and shifting downstream sections[N] indices.
     local sections = {}
-    for section in body:gmatch("([^%-%-%-]+)") do
-        table.insert(sections, section)
+    local pos = 1
+    while true do
+        local s, e = body:find("\n---\n", pos, true)
+        if not s then
+            table.insert(sections, body:sub(pos))
+            break
+        end
+        table.insert(sections, body:sub(pos, s - 1))
+        pos = e + 1
     end
 
     local uname = (sections[1] or ""):match("^%s*(.-)%s*$") or ""

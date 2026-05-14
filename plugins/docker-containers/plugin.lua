@@ -2,7 +2,7 @@ plugin = {
     id = "docker-containers",
     name = "Docker Containers",
     description = "Running Docker containers (name, image, status, ports, uptime)",
-    version = "1.0.0",
+    version = "1.0.1",
     author = "Cleat",
     icon = "",
     category = "Docker",
@@ -36,7 +36,11 @@ function collect(ssh, cfg)
 end
 
 local function trim(s)
-    return (s or ""):gsub("^%s+", ""):gsub("%s+$", "")
+    -- The outer parens collapse gsub's multi-return (string, count) down
+    -- to just the string. Without them, callers like
+    -- `table.insert(t, trim(f))` would pass both values, and table.insert
+    -- would treat the count as a pos index — breaking parsing at runtime.
+    return ((s or ""):gsub("^%s+", ""):gsub("%s+$", ""))
 end
 
 function transform(raw, cfg)
