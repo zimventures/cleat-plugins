@@ -119,12 +119,14 @@ def main() -> int:
     out_dir = Path(args.out).resolve()
     zips_dir = out_dir / "zips"
 
-    # Wipe + recreate the output dir so we don't leak stale artifacts
-    # across builds. CI starts from a clean checkout anyway, but locally
-    # this matters.
-    if out_dir.exists():
-        shutil.rmtree(out_dir)
-    zips_dir.mkdir(parents=True)
+    # Wipe only the artifacts we own (zips/ and index.json). Leave any
+    # other files in out_dir alone — the publish workflow builds the
+    # mkdocs site into the same directory first, and this script's job
+    # is to add the registry artifacts on top without removing them.
+    if zips_dir.exists():
+        shutil.rmtree(zips_dir)
+    zips_dir.mkdir(parents=True, exist_ok=True)
+    (out_dir / "index.json").unlink(missing_ok=True)
 
     entries: list[dict] = []
     if plugins_dir.is_dir():

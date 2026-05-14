@@ -6,6 +6,10 @@ Each merged entry appears in the **Browse Marketplace** tab inside cleat's Plugi
 Manager. End users install plugins from this registry with one click — no need
 to hunt down URLs or hashes manually.
 
+> **New here?** The full plugin-authoring documentation — quickstart, lifecycle,
+> Lua API reference, submission flow — lives at
+> **<https://zimventures.github.io/cleat-plugins/>**.
+
 ## What this repo contains
 
 ```
