@@ -1,0 +1,103 @@
+/* cleat brand palette — matches https://zimventures.com/cleat/
+ *
+ * Sources its hexes from the live cleat.css on the marketing site:
+ *   --cleat-navy:        #1a1a2e   (dark header / primary)
+ *   --cleat-navy-light:  #2a2a4e
+ *   --cleat-amber:       #c87533   (accent / links / brand action)
+ *   --cleat-amber-light: #e8943d
+ *   --cleat-teal:        #2d9f93   (secondary accent)
+ *
+ * Overrides Material for MkDocs's CSS variables for the "custom"
+ * primary/accent palette slots. Material chooses which set of
+ * variables to apply based on `[data-md-color-scheme]` on <html>,
+ * so we define both `default` (light) and `slate` (dark) blocks.
+ */
+
+:root {
+    --cleat-navy:        #1a1a2e;
+    --cleat-navy-light:  #2a2a4e;
+    --cleat-amber:       #c87533;
+    --cleat-amber-light: #e8943d;
+    --cleat-teal:        #2d9f93;
+}
+
+/* Primary (navbar / header). Navy in both modes — matches the
+ * cleat website's dark navbar regardless of light/dark page mode. */
+[data-md-color-primary="custom"] {
+    --md-primary-fg-color:         var(--cleat-navy);
+    --md-primary-fg-color--light:  var(--cleat-navy-light);
+    --md-primary-fg-color--dark:   var(--cleat-navy);
+    --md-primary-bg-color:         #ffffff;
+    --md-primary-bg-color--light:  rgba(255, 255, 255, 0.7);
+}
+
+/* Accent (links, focused inputs, active nav). Amber in both modes. */
+[data-md-color-accent="custom"] {
+    --md-accent-fg-color:         var(--cleat-amber);
+    --md-accent-fg-color--transparent: rgba(200, 117, 51, 0.1);
+    --md-accent-bg-color:         #ffffff;
+    --md-accent-bg-color--light:  rgba(255, 255, 255, 0.7);
+    /* `--md-typeset-a-color` is the in-content link color (anchor text
+     * inside body copy, including the grid-cards headings on the
+     * landing page). Material does NOT inherit this from --accent by
+     * default — left at the theme default it falls back to a dim
+     * primary-tinted color that's ~unreadable in dark mode. Pinning
+     * it to amber makes links pop in both schemes. */
+    --md-typeset-a-color:         var(--cleat-amber);
+}
+
+/* Visited links should NOT get the browser-default dim purple — keep
+ * them amber so cards stay readable after the user has clicked one. */
+.md-typeset a:visited {
+    color: var(--cleat-amber);
+}
+.md-typeset a:hover {
+    color: var(--cleat-amber-light);
+}
+
+/* Dark-mode page surface tuned to match cleat's card colors. */
+[data-md-color-scheme="slate"] {
+    --md-default-bg-color:        #161b22;
+    --md-default-bg-color--light: #1a1a2e;
+    --md-default-fg-color:        #c9d1d9;
+    --md-default-fg-color--light: #8b949e;
+
+    /* Code surface — needs visible separation from the page background
+     * (#161b22). Material's default-mode code bg was almost identical
+     * to the page bg, making inline code look like a flat color
+     * change with no contrast. Lift it a few shades toward navy. */
+    --md-code-bg-color:           #22273a;
+    --md-code-fg-color:           #e6edf3;
+
+    /* Syntax-highlight colors. Material's slate defaults include a
+     * function color (#a846b9) that renders as muddy purple on a dark
+     * navy code bg — barely legible. Reassign to brand-aligned
+     * amber + teal + readable greys. The other defaults work fine
+     * against the new background. */
+    --md-code-hl-function-color:    #e8943d;  /* amber-light — calls/method names */
+    --md-code-hl-keyword-color:     #d2a8ff;  /* soft lavender (readable on navy) */
+    --md-code-hl-string-color:      #a5e3a5;  /* mint */
+    --md-code-hl-number-color:      #79c0ff;  /* sky */
+    --md-code-hl-constant-color:    #79c0ff;
+    --md-code-hl-special-color:     #ffa657;  /* orange — annotations/decorators */
+    --md-code-hl-operator-color:    #c9d1d9;
+    --md-code-hl-punctuation-color: #c9d1d9;
+}
+
+/* Light-mode page surface tuned to match cleat's card colors. */
+[data-md-color-scheme="default"] {
+    --md-default-bg-color:        #ffffff;
+    --md-default-bg-color--light: #f8f7f5;
+    --md-default-fg-color:        #333333;
+    --md-default-fg-color--light: #666666;
+}
+
+/* Hover state on navbar tabs — amber underline to echo the brand. */
+.md-tabs__link:hover,
+.md-tabs__link--active {
+    color: #ffffff;
+    opacity: 1;
+}
+.md-tabs__item--active {
+    border-bottom: 2px solid var(--cleat-amber);
+}

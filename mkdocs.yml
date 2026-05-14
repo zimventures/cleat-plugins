@@ -9,6 +9,10 @@ site_dir: _site
 
 theme:
   name: material
+  # Brand assets — same icon cleat uses as its app icon (resized down
+  # to 256x256 so navbar fetches stay small).
+  logo: assets/logo.png
+  favicon: assets/logo.png
   features:
     - navigation.tabs
     - navigation.sections
@@ -20,21 +24,28 @@ theme:
     - search.suggest
     - search.highlight
     - toc.follow
+  # Use Material's "custom" palette key so the actual colors come from
+  # extra_css (cleat-palette.css) rather than Material's named presets.
+  # That lets us match the cleat website's amber + navy brand exactly
+  # rather than approximating with one of Material's built-in names.
   palette:
     - media: "(prefers-color-scheme: light)"
       scheme: default
-      primary: indigo
-      accent: indigo
+      primary: custom
+      accent: custom
       toggle:
         icon: material/weather-night
         name: Switch to dark mode
     - media: "(prefers-color-scheme: dark)"
       scheme: slate
-      primary: indigo
-      accent: indigo
+      primary: custom
+      accent: custom
       toggle:
         icon: material/weather-sunny
         name: Switch to light mode
+
+extra_css:
+  - assets/cleat-palette.css
 
 markdown_extensions:
   - admonition
@@ -46,6 +57,12 @@ markdown_extensions:
   - toc:
       permalink: true
   - pymdownx.details
+  - pymdownx.emoji:
+      # Material icon shortcodes — `:material-rocket-launch:` etc. —
+      # are rendered as inline SVGs via Twemoji + Material's generator.
+      # Without this extension the shortcodes pass through as raw text.
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
   - pymdownx.highlight:
       anchor_linenums: true
       line_spans: __span
