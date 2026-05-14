@@ -4,6 +4,6 @@
   "description": "Running Docker containers (name, image, status, ports, uptime)",
   "author": "Cleat",
   "category": "Docker",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "homepage": "https://github.com/zimventures/cleat-plugins"
 }
