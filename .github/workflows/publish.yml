@@ -1,10 +1,11 @@
-name: Publish plugin index
+name: Publish registry index
 
 on:
   push:
     branches: [main]
     paths:
       - 'plugins/**'
+      - 'screensavers/**'
       - 'tools/build.py'
       - '.github/workflows/publish.yml'
       - 'docs/**'
@@ -45,14 +46,16 @@ jobs:
 
       - name: Build zips + aggregated index.json
         run: |
-          # build.py writes _site/zips/<id>-vX.Y.Z.zip and
-          # _site/index.json on top of the mkdocs output. It only
-          # touches those two paths so the docs site survives intact.
-          # Final Pages layout served at https://zimventures.github.io/cleat-plugins/:
-          #   /                  -> docs site (mkdocs index.html)
-          #   /api/ssh/, ...     -> docs pages
-          #   /index.json        -> registry index (cleat clients fetch this)
-          #   /zips/<id>-vX.Y.Z.zip -> built plugin archives
+          # build.py writes _site/zips/<id>-vX.Y.Z.zip,
+          # _site/zips/screensavers/<id>-vX.Y.Z.zip, and _site/index.json on
+          # top of the mkdocs output. It only touches those paths so the
+          # docs site survives intact. Final Pages layout served at
+          # https://zimventures.github.io/cleat-plugins/:
+          #   /                       -> docs site (mkdocs index.html)
+          #   /api/ssh/, ...          -> docs pages
+          #   /index.json             -> registry index (cleat clients fetch this)
+          #   /zips/<id>-vX.Y.Z.zip   -> built plugin archives
+          #   /zips/screensavers/<id>-vX.Y.Z.zip -> built screensaver archives
           python tools/build.py --out _site \
             --base-url "https://zimventures.github.io/cleat-plugins/"
           echo "--- index.json preview ---"

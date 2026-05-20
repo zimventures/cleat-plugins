@@ -44,7 +44,7 @@ plugins land in `~/.config/cleat/plugins/`.
 ## Submitting a plugin or screensaver
 
 Open a PR adding `plugins/<your-id>/plugin.lua` + `plugins/<your-id>/plugin.json`
-(or `screensavers/<your-id>/screensaver.lua` + `screensaver.json`).
+(or `screensavers/<your-id>/screensaver.lua` + `screensavers/<your-id>/screensaver.json`).
 CI validates the entry — schema check, id matches the directory and the .lua
 source, id uniqueness, version matches between the manifest and the .lua,
 etc. A maintainer reviews + merges; the publish workflow rebuilds zips and

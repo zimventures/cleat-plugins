@@ -65,7 +65,8 @@ def fail(path: Path, msg: str, errors: list[str]) -> None:
 def parse_lua_metadata(lua_path: Path, kind: str = "plugin") -> dict[str, str]:
     """Extract id/version/etc. from a plugin.lua / screensaver.lua. Best-effort
     string parser — sufficient for the manifest-cross-check we do here. Returns
-    a dict of the first occurrences of each scanned field.
+    a dict of the first occurrences of each scanned field, or {} when the
+    script doesn't contain a metadata block we can anchor on.
 
     `kind` selects which metadata table name to anchor on ("plugin" for
     plugin.lua, "screensaver" for screensaver.lua) so we don't pick up
@@ -74,10 +75,17 @@ def parse_lua_metadata(lua_path: Path, kind: str = "plugin") -> dict[str, str]:
         text = lua_path.read_text(encoding="utf-8")
     except OSError:
         return {}
-    # Only look at the first metadata block — stop at the closing `}` so
-    # we don't pick up id assignments elsewhere in the file.
-    end = text.find("}", text.find(kind))
-    head = text if end < 0 else text[:end]
+    # Anchor on `<kind> = {` so a script that happens to mention the word
+    # "plugin" or "screensaver" in a comment / string / unrelated identifier
+    # doesn't pull our scan into a bogus region. If we can't find that exact
+    # opener, the script is missing its metadata block — return empty rather
+    # than fall through to scanning the whole file (which could match
+    # `id = "..."` from an unrelated table like a fish-species list).
+    anchor = re.search(rf"\b{re.escape(kind)}\s*=\s*{{", text)
+    if anchor is None:
+        return {}
+    end = text.find("}", anchor.end())
+    head = text[anchor.end():] if end < 0 else text[anchor.end():end]
     result: dict[str, str] = {}
     for match in LUA_FIELD_RE.finditer(head):
         key = match.group(1)
