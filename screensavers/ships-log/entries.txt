@@ -1,0 +1,64 @@
+# Ship's Log entries — one per blank-line-separated paragraph. Loaded by the
+# screensaver at startup and displayed in random order. Mix real nautical
+# language with subtle server-admin metaphors so the personality lands.
+# Lines starting with `#` are comments and skipped.
+
+Seas calm. Wind NNE at 12 knots.
+All connections holding steady.
+The packets flow like a fair tide.
+
+First Mate reports port 443 secured.
+No unauthorized boarding attempts
+since the morning watch.
+
+Crossed the threshold of the firewall
+at the hour of the dog watch.
+The compass holds its true north;
+the routes remain unblemished.
+
+Squall on the horizon — three nodes
+flickering in the distant fleet.
+Battened the hatches on the kernel
+and weathered it without loss.
+
+Heard the lookout's call:
+"Latency rising on the bearing
+of three-fourths a second!"
+We adjusted the sails and held the line.
+
+Calm seas, fair winds. The TCP
+handshakes complete in good order.
+Even the gulls keep clean retransmits.
+
+A schooner appeared on the horizon
+flying the colours of an old protocol.
+We saluted with a deprecation notice
+and continued our course.
+
+Reefed the sails before the storm.
+Throttled the bandwidth to a
+reasonable cruising trim. The
+hold runs quiet and cool.
+
+The CRC checks come up green
+hour after hour. Even the
+barnacles on the hull report nominal.
+
+The cargo of bits arrived
+unharmed in the morning watch.
+Manifest reconciled, ledger sealed
+with the proper hash.
+
+Tomorrow we make for the Antarctic
+of the deep-archive cold storage.
+Stocks of warmth and bandwidth
+laid in for the long voyage.
+
+Two TCP retransmits and a single
+ICMP unreachable — the only blots
+on an otherwise spotless watch.
+
+Found a stray packet adrift,
+labelled only "TODO: revisit."
+We returned it to its owner
+with a friendly note.
