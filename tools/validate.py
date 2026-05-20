@@ -62,18 +62,30 @@ def fail(path: Path, msg: str, errors: list[str]) -> None:
     errors.append(f"{path}: {msg}")
 
 
-def parse_lua_metadata(lua_path: Path) -> dict[str, str]:
-    """Extract id/version/etc. from a plugin.lua. Best-effort string parser
-    — sufficient for the manifest-cross-check we do here. Returns a dict of
-    the first occurrences of each scanned field."""
+def parse_lua_metadata(lua_path: Path, kind: str = "plugin") -> dict[str, str]:
+    """Extract id/version/etc. from a plugin.lua / screensaver.lua. Best-effort
+    string parser — sufficient for the manifest-cross-check we do here. Returns
+    a dict of the first occurrences of each scanned field, or {} when the
+    script doesn't contain a metadata block we can anchor on.
+
+    `kind` selects which metadata table name to anchor on ("plugin" for
+    plugin.lua, "screensaver" for screensaver.lua) so we don't pick up
+    unrelated id assignments elsewhere in the script."""
     try:
         text = lua_path.read_text(encoding="utf-8")
     except OSError:
         return {}
-    # Only look at the first metadata block — stop at the closing `}` so
-    # we don't pick up id assignments elsewhere in the file.
-    end = text.find("}", text.find("plugin"))
-    head = text if end < 0 else text[:end]
+    # Anchor on `<kind> = {` so a script that happens to mention the word
+    # "plugin" or "screensaver" in a comment / string / unrelated identifier
+    # doesn't pull our scan into a bogus region. If we can't find that exact
+    # opener, the script is missing its metadata block — return empty rather
+    # than fall through to scanning the whole file (which could match
+    # `id = "..."` from an unrelated table like a fish-species list).
+    anchor = re.search(rf"\b{re.escape(kind)}\s*=\s*{{", text)
+    if anchor is None:
+        return {}
+    end = text.find("}", anchor.end())
+    head = text[anchor.end():] if end < 0 else text[anchor.end():end]
     result: dict[str, str] = {}
     for match in LUA_FIELD_RE.finditer(head):
         key = match.group(1)
@@ -82,15 +94,21 @@ def parse_lua_metadata(lua_path: Path) -> dict[str, str]:
     return result
 
 
-def check_entry(entry_dir: Path, errors: list[str]) -> dict | None:
-    manifest = entry_dir / "plugin.json"
-    lua = entry_dir / "plugin.lua"
+def check_entry(entry_dir: Path, errors: list[str], kind: str = "plugin") -> dict | None:
+    """Validate a single entry directory. `kind` picks the manifest + script
+    filenames: "plugin" expects plugin.json + plugin.lua (legacy); "screensaver"
+    expects screensaver.json + screensaver.lua. Everything else (semver, id
+    safety, manifest/script id+version cross-check) is shared."""
+    manifest_name = f"{kind}.json"
+    lua_name = f"{kind}.lua"
+    manifest = entry_dir / manifest_name
+    lua = entry_dir / lua_name
 
     if not manifest.is_file():
-        fail(entry_dir, "missing plugin.json", errors)
+        fail(entry_dir, f"missing {manifest_name}", errors)
         return None
     if not lua.is_file():
-        fail(entry_dir, "missing plugin.lua", errors)
+        fail(entry_dir, f"missing {lua_name}", errors)
         return None
 
     try:
@@ -142,23 +160,22 @@ def check_entry(entry_dir: Path, errors: list[str]) -> dict | None:
     if cmv and not SEMVER_RE.match(cmv):
         fail(manifest, f"cleat_min_version `{cmv}` is not strict MAJOR.MINOR.PATCH semver", errors)
 
-    # Cross-check plugin.lua's declared metadata against the manifest.
+    # Cross-check the .lua's declared metadata against the manifest.
     # Missing id / version in the .lua is itself a validation failure —
     # without an explicit error here, a .lua that omits the field would
-    # silently pass and we'd publish a plugin cleat can't actually load.
-    lua_meta = parse_lua_metadata(lua)
+    # silently pass and we'd publish an entry cleat can't actually load.
+    lua_meta = parse_lua_metadata(lua, kind=kind)
     lua_id = lua_meta.get("id")
     if lua_id is None:
-        fail(lua, "plugin.lua does not declare an `id` field in its metadata table", errors)
+        fail(lua, f"{lua_name} does not declare an `id` field in its metadata table", errors)
     elif pid and lua_id != pid:
-        fail(lua, f"plugin.lua declares id `{lua_id}` but the manifest says `{pid}`", errors)
+        fail(lua, f"{lua_name} declares id `{lua_id}` but the manifest says `{pid}`", errors)
 
     lua_version = lua_meta.get("version")
     if lua_version is None:
-        fail(lua, "plugin.lua does not declare a `version` field in its metadata table", errors)
+        fail(lua, f"{lua_name} does not declare a `version` field in its metadata table", errors)
     elif version and lua_version != version:
-        fail(lua, f"plugin.lua declares version `{lua_version}` but the manifest says `{version}` — bump both",
-             errors)
+        fail(lua, f"{lua_name} declares version `{lua_version}` but the manifest says `{version}` — bump both", errors)
 
     return doc
 
@@ -166,21 +183,27 @@ def check_entry(entry_dir: Path, errors: list[str]) -> dict | None:
 def main() -> int:
     root = Path(__file__).resolve().parent.parent
     plugins_dir = root / "plugins"
-    if not plugins_dir.is_dir():
-        print(f"WARN: no plugins/ directory at {plugins_dir}; nothing to validate.")
-        return 0
+    screensavers_dir = root / "screensavers"
 
-    entry_dirs = sorted([p for p in plugins_dir.iterdir() if p.is_dir()])
-    if not entry_dirs:
-        print("WARN: no plugin entries found.")
+    # Collect (dir, kind) pairs so the validation loop is kind-agnostic. The
+    # globally-unique-id check spans both kinds intentionally — colliding
+    # ids would race in cleat's install routing.
+    entries: list[tuple[Path, str]] = []
+    if plugins_dir.is_dir():
+        entries.extend((p, "plugin") for p in sorted(plugins_dir.iterdir()) if p.is_dir())
+    if screensavers_dir.is_dir():
+        entries.extend((p, "screensaver") for p in sorted(screensavers_dir.iterdir()) if p.is_dir())
+
+    if not entries:
+        print(f"WARN: no plugin/screensaver entries found under {root}.")
         return 0
 
     errors: list[str] = []
     seen_ids: dict[str, Path] = {}
 
-    for entry_dir in entry_dirs:
-        print(f"validating {entry_dir.relative_to(root)} ...")
-        doc = check_entry(entry_dir, errors)
+    for entry_dir, kind in entries:
+        print(f"validating {entry_dir.relative_to(root)} ({kind}) ...")
+        doc = check_entry(entry_dir, errors, kind=kind)
         if doc is None:
             continue
         pid = doc.get("id", "")
@@ -200,7 +223,7 @@ def main() -> int:
         return 1
 
     print("")
-    print(f"OK: {len(entry_dirs)} entry/entries valid.")
+    print(f"OK: {len(entries)} entry/entries valid.")
     return 0
 
 

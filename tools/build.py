@@ -38,22 +38,26 @@ from pathlib import Path
 DEFAULT_BASE_URL = "https://zimventures.github.io/cleat-plugins/"
 
 
-def build_one_zip(entry_dir: Path, zips_out: Path) -> tuple[Path, str, str]:
+def build_one_zip(entry_dir: Path, zips_out: Path, kind: str = "plugin") -> tuple[Path, str, str]:
     """Zip up `entry_dir`'s contents into `zips_out/<id>-vX.Y.Z.zip`,
     return (zip_path, sha256_hex, archive_inner_top_dir). Cleat expects
     the archive to wrap everything in a single top-level directory whose
-    name is the plugin id — we always honor that here regardless of
+    name is the entry id — we always honor that here regardless of
     what `entry_dir.name` happens to be (kept in lockstep by the validator
-    earlier in CI)."""
-    manifest_path = entry_dir / "plugin.json"
+    earlier in CI).
+
+    `kind` selects the manifest + script filenames ("plugin" or
+    "screensaver"). Both follow identical packaging rules; only the names
+    differ."""
+    manifest_path = entry_dir / f"{kind}.json"
     with manifest_path.open() as f:
         manifest = json.load(f)
-    plugin_id = manifest["id"]
+    entry_id = manifest["id"]
     version = manifest["version"]
 
-    zip_name = f"{plugin_id}-v{version}.zip"
+    zip_name = f"{entry_id}-v{version}.zip"
     zip_path = zips_out / zip_name
-    top_dir = plugin_id
+    top_dir = entry_id
 
     files: list[Path] = []
     for p in sorted(entry_dir.rglob("*")):
@@ -68,15 +72,16 @@ def build_one_zip(entry_dir: Path, zips_out: Path) -> tuple[Path, str, str]:
             raise RuntimeError(f"{entry_dir}: symlink not allowed in published source: {p.relative_to(entry_dir)}")
         files.append(p)
 
-    # plugin.lua must live at the entry root, not in a subdirectory.
-    # Cleat's loader expects `<id>/plugin.lua` inside the zip; a nested
-    # `<id>/subdir/plugin.lua` would silently produce an unloadable
+    # <kind>.lua must live at the entry root, not in a subdirectory.
+    # Cleat's loader expects `<id>/<kind>.lua` inside the zip; a nested
+    # `<id>/subdir/<kind>.lua` would silently produce an unloadable
     # archive even though the file exists somewhere in the tree.
+    lua_name = f"{kind}.lua"
     has_root_lua = any(
-        f.parent == entry_dir and f.name == "plugin.lua" for f in files
+        f.parent == entry_dir and f.name == lua_name for f in files
     )
     if not has_root_lua:
-        raise RuntimeError(f"{entry_dir}: no plugin.lua at the root of the entry")
+        raise RuntimeError(f"{entry_dir}: no {lua_name} at the root of the entry")
 
     # ZIP_DEFLATED gives reasonable compression on Lua source. Determinism
     # is not strictly required (each entry version is intended to be
@@ -116,8 +121,12 @@ def main() -> int:
     base_url = args.base_url.rstrip("/") + "/"
     root = Path(__file__).resolve().parent.parent
     plugins_dir = root / "plugins"
+    screensavers_dir = root / "screensavers"
     out_dir = Path(args.out).resolve()
     zips_dir = out_dir / "zips"
+    # Screensaver zips go in a subdirectory of zips/ so a screensaver and a
+    # plugin can share an id without their archives colliding on the CDN.
+    ss_zips_dir = zips_dir / "screensavers"
 
     # Wipe only the artifacts we own (zips/ and index.json). Leave any
     # other files in out_dir alone — the publish workflow builds the
@@ -126,43 +135,62 @@ def main() -> int:
     if zips_dir.exists():
         shutil.rmtree(zips_dir)
     zips_dir.mkdir(parents=True, exist_ok=True)
+    ss_zips_dir.mkdir(parents=True, exist_ok=True)
     (out_dir / "index.json").unlink(missing_ok=True)
 
-    entries: list[dict] = []
-    if plugins_dir.is_dir():
-        for entry_dir in sorted(p for p in plugins_dir.iterdir() if p.is_dir()):
-            manifest_path = entry_dir / "plugin.json"
+    def collect(entry_root: Path, kind: str, zips_target: Path, url_prefix: str) -> list[dict]:
+        """Build zips + assemble index entries for every directory under
+        `entry_root`. `kind` ("plugin" / "screensaver") selects the manifest
+        filename + propagates to the JSON entry's `type` field."""
+        out: list[dict] = []
+        if not entry_root.is_dir():
+            return out
+        for entry_dir in sorted(p for p in entry_root.iterdir() if p.is_dir()):
+            manifest_name = f"{kind}.json"
+            manifest_path = entry_dir / manifest_name
             if not manifest_path.is_file():
                 # Validator should catch this; build skips it defensively.
-                print(f"WARN: {entry_dir.relative_to(root)} has no plugin.json, skipping")
+                print(f"WARN: {entry_dir.relative_to(root)} has no {manifest_name}, skipping")
                 continue
             with manifest_path.open() as f:
                 manifest = json.load(f)
 
-            zip_path, sha, _ = build_one_zip(entry_dir, zips_dir)
-            zip_url = base_url + f"zips/{zip_path.name}"
+            zip_path, sha, _ = build_one_zip(entry_dir, zips_target, kind=kind)
+            zip_url = base_url + url_prefix + zip_path.name
 
             # Build the index entry: author-supplied metadata + CI-derived
-            # source_url + sha256. Strip any forbidden fields the author
-            # might have left in (defense in depth — validator already
+            # source_url + sha256 + type. Strip any forbidden fields the
+            # author might have left in (defense in depth — validator already
             # rejected them).
-            entry = {k: v for k, v in manifest.items() if k not in ("source_url", "sha256")}
+            entry = {k: v for k, v in manifest.items() if k not in ("source_url", "sha256", "type")}
+            entry["type"] = kind
             entry["source_url"] = zip_url
             entry["sha256"] = sha
-            entries.append(entry)
+            out.append(entry)
 
             print(f"built {zip_path.relative_to(out_dir)} (sha256 {sha[:16]}...) -> {zip_url}")
+        return out
+
+    plugin_entries = collect(plugins_dir, "plugin", zips_dir, "zips/")
+    screensaver_entries = collect(screensavers_dir, "screensaver", ss_zips_dir, "zips/screensavers/")
 
     doc = {
         "schema_version": 1,
         "updated_at": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
-        "plugins": entries,
+        "plugins": plugin_entries,
     }
+    # Only emit the screensavers array when there's at least one entry. Keeps
+    # the index byte-identical to the pre-screensavers format for registries
+    # that haven't published any yet.
+    if screensaver_entries:
+        doc["screensavers"] = screensaver_entries
+
     index_path = out_dir / "index.json"
     with index_path.open("w", encoding="utf-8") as f:
         json.dump(doc, f, indent=2)
         f.write("\n")
-    print(f"wrote {index_path.relative_to(root)} ({len(entries)} entries)")
+    print(f"wrote {index_path.relative_to(root)} "
+          f"({len(plugin_entries)} plugin(s), {len(screensaver_entries)} screensaver(s))")
     return 0
 
 

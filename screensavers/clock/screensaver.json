@@ -1,0 +1,9 @@
+{
+  "id": "clock",
+  "name": "Clock",
+  "description": "Big ASCII clock — useful as well as ambient.",
+  "author": "Cleat",
+  "category": "Utility",
+  "version": "1.0.0",
+  "homepage": "https://github.com/zimventures/cleat-plugins/tree/main/screensavers/clock"
+}

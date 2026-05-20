@@ -15,27 +15,36 @@ to hunt down URLs or hashes manually.
 ```
 plugins/
 └── <plugin-id>/
-    ├── plugin.lua     # the plugin source
-    └── plugin.json    # author-facing metadata manifest
+    ├── plugin.lua          # the plugin source
+    └── plugin.json         # author-facing metadata manifest
+
+screensavers/
+└── <screensaver-id>/
+    ├── screensaver.lua     # the screensaver source
+    ├── screensaver.json    # author-facing metadata manifest
+    └── *.txt               # optional asset files read via load_asset()
 ```
 
 Authors submit source files. CI does the packaging: on every merge to `main`,
-the publish workflow walks each `plugins/<id>/`, zips it, computes the sha256,
+the publish workflow walks each entry, zips it, computes the sha256,
 aggregates the result into a single `index.json`, and deploys both the zips and
 the index to GitHub Pages:
 
 ```
-https://zimventures.github.io/cleat-plugins/index.json        ← the index
-https://zimventures.github.io/cleat-plugins/zips/<id>-vX.Y.Z.zip  ← built zips
+https://zimventures.github.io/cleat-plugins/index.json                              ← the index
+https://zimventures.github.io/cleat-plugins/zips/<id>-vX.Y.Z.zip                    ← plugin zips
+https://zimventures.github.io/cleat-plugins/zips/screensavers/<id>-vX.Y.Z.zip       ← screensaver zips
 ```
 
 cleat fetches the index URL (configurable via `plugins.marketplace.index_url`)
-and downloads each plugin's zip on install. Verifies the sha256 matches the
-index entry before unpacking.
+and downloads each entry's zip on install. Verifies the sha256 matches the
+index entry before unpacking. Screensavers land in `~/.config/cleat/screensavers/`;
+plugins land in `~/.config/cleat/plugins/`.
 
-## Submitting a plugin
+## Submitting a plugin or screensaver
 
-Open a PR adding `plugins/<your-id>/plugin.lua` + `plugins/<your-id>/plugin.json`.
+Open a PR adding `plugins/<your-id>/plugin.lua` + `plugins/<your-id>/plugin.json`
+(or `screensavers/<your-id>/screensaver.lua` + `screensavers/<your-id>/screensaver.json`).
 CI validates the entry — schema check, id matches the directory and the .lua
 source, id uniqueness, version matches between the manifest and the .lua,
 etc. A maintainer reviews + merges; the publish workflow rebuilds zips and

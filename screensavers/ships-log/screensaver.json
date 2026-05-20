@@ -1,0 +1,9 @@
+{
+  "id": "ships-log",
+  "name": "Ship's Log",
+  "description": "Vintage typewriter logs from HMS Cleat, with a sysadmin streak.",
+  "author": "Cleat",
+  "category": "Themed",
+  "version": "1.0.0",
+  "homepage": "https://github.com/zimventures/cleat-plugins/tree/main/screensavers/ships-log"
+}

@@ -1,15 +1,17 @@
-name: Validate plugin manifests
+name: Validate registry manifests
 
 on:
   pull_request:
     paths:
       - 'plugins/**'
+      - 'screensavers/**'
       - 'tools/**'
       - '.github/workflows/validate.yml'
   push:
     branches: [main]
     paths:
       - 'plugins/**'
+      - 'screensavers/**'
       - 'tools/**'
 
 permissions:
@@ -26,9 +28,9 @@ jobs:
           python-version: '3.x'
 
       # validate.py has no third-party dependencies — it lints the
-      # manifest + the plugin.lua source. CI builds the zips and hashes
-      # them itself (see publish.yml + tools/build.py), so there's no
-      # source_url to download here.
+      # manifest + the plugin.lua / screensaver.lua source. CI builds the
+      # zips and hashes them itself (see publish.yml + tools/build.py), so
+      # there's no source_url to download here.
 
-      - name: Validate every plugin entry
+      - name: Validate every registry entry
         run: python tools/validate.py

@@ -1,0 +1,9 @@
+{
+  "id": "pipes",
+  "name": "Pipes",
+  "description": "Growing pipe network in box-drawing characters.",
+  "author": "Cleat",
+  "category": "Animations",
+  "version": "1.0.0",
+  "homepage": "https://github.com/zimventures/cleat-plugins/tree/main/screensavers/pipes"
+}
